@@ -565,7 +565,6 @@
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(payload),
-            mode: "no-cors",
           });
           successCount++;
           document.getElementById("successCount").textContent = successCount;
@@ -611,7 +610,6 @@
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(logPayload),
-            mode: "no-cors",
           });
           successCount++;
           document.getElementById("successCount").textContent = successCount;

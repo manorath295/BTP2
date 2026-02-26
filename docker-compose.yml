@@ -8,9 +8,9 @@ services:
       - ELASTIC_PASSWORD=elastic123
       - xpack.license.self_generated.type=trial
       - http.cors.enabled=true
-      - http.cors.allow-origin=*
-      - http.cors.allow-methods=OPTIONS,HEAD,GET,POST,PUT,DELETE
-      - http.cors.allow-headers=X-Requested-With,X-Auth-Token,Content-Type,Content-Length,Authorization
+      - "http.cors.allow-origin=/.*/"
+      - "http.cors.allow-methods=OPTIONS,HEAD,GET,POST,PUT,DELETE"
+      - "http.cors.allow-headers=X-Requested-With,X-Auth-Token,Content-Type,Content-Length,Authorization"
     ports:
       - "9200:9200"
     mem_limit: 1g
