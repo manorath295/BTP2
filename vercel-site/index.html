@@ -561,10 +561,14 @@
         document.getElementById("totalLogs").textContent = totalLogs;
 
         try {
+          const targetUrl =
+            ngrokUrl +
+            (ngrokUrl.includes("?") ? "&" : "?") +
+            "ngrok-skip-browser-warning=true";
           const blob = new Blob([JSON.stringify(payload)], {
             type: "application/json",
           });
-          const sent = navigator.sendBeacon(ngrokUrl, blob);
+          const sent = navigator.sendBeacon(targetUrl, blob);
           if (sent) {
             successCount++;
             document.getElementById("successCount").textContent = successCount;
@@ -611,10 +615,14 @@
         document.getElementById("totalLogs").textContent = totalLogs;
 
         try {
+          const targetUrl =
+            ngrokUrl +
+            (ngrokUrl.includes("?") ? "&" : "?") +
+            "ngrok-skip-browser-warning=true";
           const blob = new Blob([JSON.stringify(logPayload)], {
             type: "application/json",
           });
-          const sent = navigator.sendBeacon(ngrokUrl, blob);
+          const sent = navigator.sendBeacon(targetUrl, blob);
           if (sent) {
             successCount++;
             document.getElementById("successCount").textContent = successCount;
