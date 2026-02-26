@@ -1,0 +1,21 @@
+filebeat.inputs:
+  # Input 1: Nginx logs from local container
+  - type: log
+    enabled: true
+    paths:
+      - /var/log/nginx/*.log
+
+  # Input 2: HTTP endpoint for remote website logs
+  - type: http_endpoint
+    enabled: true
+    listen_address: 0.0.0.0
+    listen_port: 8088
+    content_type: application/json
+
+output.elasticsearch:
+  hosts: ["http://elasticsearch:9200"]
+  username: "elastic"
+  password: "elastic123"
+
+setup.kibana:
+  host: "http://kibana:5601"

@@ -1,0 +1,627 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SOC Monitor - AI WAF Demo</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Inter", sans-serif;
+        background: #0a0e1a;
+        color: #e0e6f0;
+        min-height: 100vh;
+        overflow-x: hidden;
+      }
+
+      /* Animated background */
+      body::before {
+        content: "";
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background:
+          radial-gradient(
+            ellipse at 20% 50%,
+            rgba(16, 185, 129, 0.08) 0%,
+            transparent 50%
+          ),
+          radial-gradient(
+            ellipse at 80% 20%,
+            rgba(59, 130, 246, 0.08) 0%,
+            transparent 50%
+          ),
+          radial-gradient(
+            ellipse at 50% 80%,
+            rgba(239, 68, 68, 0.05) 0%,
+            transparent 50%
+          );
+        z-index: 0;
+      }
+
+      .container {
+        position: relative;
+        z-index: 1;
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 40px 20px;
+      }
+
+      /* Header */
+      .header {
+        text-align: center;
+        margin-bottom: 40px;
+      }
+
+      .header h1 {
+        font-size: 2.2rem;
+        font-weight: 700;
+        background: linear-gradient(135deg, #10b981, #3b82f6);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin-bottom: 8px;
+      }
+
+      .header p {
+        color: #64748b;
+        font-size: 0.95rem;
+      }
+
+      .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: rgba(16, 185, 129, 0.1);
+        border: 1px solid rgba(16, 185, 129, 0.3);
+        padding: 6px 16px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        color: #10b981;
+        margin-top: 12px;
+      }
+
+      .status-dot {
+        width: 8px;
+        height: 8px;
+        background: #10b981;
+        border-radius: 50%;
+        animation: pulse 2s infinite;
+      }
+
+      @keyframes pulse {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.3;
+        }
+      }
+
+      /* Config section */
+      .config-section {
+        background: rgba(15, 23, 42, 0.8);
+        border: 1px solid rgba(51, 65, 85, 0.5);
+        border-radius: 12px;
+        padding: 24px;
+        margin-bottom: 24px;
+        backdrop-filter: blur(10px);
+      }
+
+      .config-section h3 {
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: #64748b;
+        margin-bottom: 12px;
+      }
+
+      .config-input {
+        width: 100%;
+        padding: 12px 16px;
+        background: rgba(30, 41, 59, 0.8);
+        border: 1px solid rgba(71, 85, 105, 0.5);
+        border-radius: 8px;
+        color: #e0e6f0;
+        font-family: "Inter", monospace;
+        font-size: 0.9rem;
+        outline: none;
+        transition: border-color 0.3s;
+      }
+
+      .config-input:focus {
+        border-color: #3b82f6;
+      }
+
+      .config-input::placeholder {
+        color: #475569;
+      }
+
+      /* Button grid */
+      .button-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 16px;
+        margin-bottom: 24px;
+      }
+
+      .action-btn {
+        padding: 16px 20px;
+        border: 1px solid rgba(51, 65, 85, 0.5);
+        border-radius: 12px;
+        background: rgba(15, 23, 42, 0.6);
+        color: #e0e6f0;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-align: left;
+        backdrop-filter: blur(10px);
+      }
+
+      .action-btn:hover {
+        transform: translateY(-2px);
+        border-color: rgba(59, 130, 246, 0.5);
+        box-shadow: 0 8px 25px rgba(59, 130, 246, 0.15);
+      }
+
+      .action-btn:active {
+        transform: scale(0.98);
+      }
+
+      .btn-icon {
+        font-size: 1.5rem;
+        margin-bottom: 8px;
+      }
+      .btn-title {
+        font-weight: 600;
+        font-size: 0.95rem;
+        margin-bottom: 4px;
+      }
+      .btn-desc {
+        font-size: 0.75rem;
+        color: #64748b;
+      }
+
+      .btn-attack {
+        border-color: rgba(239, 68, 68, 0.3);
+      }
+      .btn-attack:hover {
+        border-color: rgba(239, 68, 68, 0.6);
+        box-shadow: 0 8px 25px rgba(239, 68, 68, 0.15);
+      }
+
+      /* Log feed */
+      .log-feed {
+        background: rgba(15, 23, 42, 0.8);
+        border: 1px solid rgba(51, 65, 85, 0.5);
+        border-radius: 12px;
+        padding: 20px;
+        backdrop-filter: blur(10px);
+      }
+
+      .log-feed h3 {
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: #64748b;
+        margin-bottom: 12px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .log-count {
+        background: rgba(59, 130, 246, 0.2);
+        color: #3b82f6;
+        padding: 2px 10px;
+        border-radius: 10px;
+        font-size: 0.75rem;
+      }
+
+      .log-entries {
+        max-height: 350px;
+        overflow-y: auto;
+        font-family: "Courier New", monospace;
+        font-size: 0.8rem;
+      }
+
+      .log-entry {
+        padding: 8px 12px;
+        border-radius: 6px;
+        margin-bottom: 4px;
+        animation: slideIn 0.3s ease;
+        line-height: 1.4;
+      }
+
+      @keyframes slideIn {
+        from {
+          opacity: 0;
+          transform: translateX(-10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateX(0);
+        }
+      }
+
+      .log-info {
+        background: rgba(59, 130, 246, 0.08);
+        color: #93c5fd;
+      }
+      .log-warn {
+        background: rgba(245, 158, 11, 0.08);
+        color: #fcd34d;
+      }
+      .log-error {
+        background: rgba(239, 68, 68, 0.08);
+        color: #fca5a5;
+      }
+      .log-success {
+        background: rgba(16, 185, 129, 0.08);
+        color: #6ee7b7;
+      }
+
+      .log-time {
+        color: #475569;
+        margin-right: 8px;
+      }
+
+      .empty-state {
+        text-align: center;
+        padding: 40px;
+        color: #475569;
+      }
+
+      /* Scrollbar */
+      .log-entries::-webkit-scrollbar {
+        width: 4px;
+      }
+      .log-entries::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      .log-entries::-webkit-scrollbar-thumb {
+        background: #334155;
+        border-radius: 4px;
+      }
+
+      /* Stats bar */
+      .stats-bar {
+        display: flex;
+        gap: 16px;
+        margin-bottom: 24px;
+        flex-wrap: wrap;
+      }
+
+      .stat-card {
+        flex: 1;
+        min-width: 120px;
+        background: rgba(15, 23, 42, 0.6);
+        border: 1px solid rgba(51, 65, 85, 0.5);
+        border-radius: 10px;
+        padding: 16px;
+        text-align: center;
+      }
+
+      .stat-value {
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: #3b82f6;
+      }
+
+      .stat-label {
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: #64748b;
+        margin-top: 4px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <!-- Header -->
+      <div class="header">
+        <h1>🛡️ SOC Monitor — AI WAF Demo</h1>
+        <p>Real-time log forwarding to ELK SIEM Pipeline</p>
+        <div class="status-badge">
+          <span class="status-dot"></span>
+          <span id="connectionStatus">Waiting for config...</span>
+        </div>
+      </div>
+
+      <!-- Config -->
+      <div class="config-section">
+        <h3>🔗 Ngrok Endpoint URL</h3>
+        <input
+          type="text"
+          class="config-input"
+          id="ngrokUrl"
+          placeholder="https://your-id.ngrok-free.app"
+          oninput="saveConfig()"
+        />
+      </div>
+
+      <!-- Stats -->
+      <div class="stats-bar">
+        <div class="stat-card">
+          <div class="stat-value" id="totalLogs">0</div>
+          <div class="stat-label">Logs Sent</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="successCount">0</div>
+          <div class="stat-label">Success</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="failCount">0</div>
+          <div class="stat-label">Failed</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="attackCount">0</div>
+          <div class="stat-label">Attacks Sim</div>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="button-grid">
+        <button
+          class="action-btn"
+          onclick="sendLog('page_view', 'User viewed the homepage')"
+        >
+          <div class="btn-icon">👁️</div>
+          <div class="btn-title">Page View</div>
+          <div class="btn-desc">Simulate a normal page visit</div>
+        </button>
+
+        <button
+          class="action-btn"
+          onclick="
+            sendLog(
+              'login_attempt',
+              'User attempted login with username: admin',
+            )
+          "
+        >
+          <div class="btn-icon">🔑</div>
+          <div class="btn-title">Login Attempt</div>
+          <div class="btn-desc">Simulate a login event</div>
+        </button>
+
+        <button
+          class="action-btn"
+          onclick="sendLog('api_call', 'GET /api/users — 200 OK')"
+        >
+          <div class="btn-icon">📡</div>
+          <div class="btn-title">API Call</div>
+          <div class="btn-desc">Simulate a REST API request</div>
+        </button>
+
+        <button
+          class="action-btn"
+          onclick="
+            sendLog('file_download', 'User downloaded report.pdf — 2.4MB')
+          "
+        >
+          <div class="btn-icon">📥</div>
+          <div class="btn-title">File Download</div>
+          <div class="btn-desc">Simulate a file download event</div>
+        </button>
+
+        <button
+          class="action-btn btn-attack"
+          onclick="
+            sendAttack(
+              'sql_injection',
+              'SELECT * FROM users WHERE id=1 OR 1=1; DROP TABLE users;',
+            )
+          "
+        >
+          <div class="btn-icon">💉</div>
+          <div class="btn-title">SQL Injection</div>
+          <div class="btn-desc">Simulate a SQL injection attack</div>
+        </button>
+
+        <button
+          class="action-btn btn-attack"
+          onclick="
+            sendAttack(
+              'xss_attack',
+              '&lt;script&gt;alert(document.cookie)&lt;/script&gt;',
+            )
+          "
+        >
+          <div class="btn-icon">🕷️</div>
+          <div class="btn-title">XSS Attack</div>
+          <div class="btn-desc">Simulate a cross-site scripting attack</div>
+        </button>
+
+        <button
+          class="action-btn btn-attack"
+          onclick="
+            sendAttack(
+              'brute_force',
+              'Failed login attempt #47 for user admin from IP 192.168.1.100',
+            )
+          "
+        >
+          <div class="btn-icon">🔨</div>
+          <div class="btn-title">Brute Force</div>
+          <div class="btn-desc">Simulate a brute force attempt</div>
+        </button>
+
+        <button
+          class="action-btn btn-attack"
+          onclick="
+            sendAttack('path_traversal', 'GET /../../../../etc/passwd HTTP/1.1')
+          "
+        >
+          <div class="btn-icon">📂</div>
+          <div class="btn-title">Path Traversal</div>
+          <div class="btn-desc">Simulate a directory traversal attack</div>
+        </button>
+      </div>
+
+      <!-- Log Feed -->
+      <div class="log-feed">
+        <h3>
+          📋 Activity Log
+          <span class="log-count" id="logCountBadge">0</span>
+        </h3>
+        <div class="log-entries" id="logEntries">
+          <div class="empty-state">
+            Click a button above to start sending logs to your ELK SIEM...
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      let totalLogs = 0;
+      let successCount = 0;
+      let failCount = 0;
+      let attackCount = 0;
+
+      // Load saved config
+      window.addEventListener("load", () => {
+        const saved = localStorage.getItem("ngrokUrl");
+        if (saved) {
+          document.getElementById("ngrokUrl").value = saved;
+          updateStatus("Connected", true);
+        }
+        // Auto-log page view
+        sendLog("page_view", "Page loaded — session started");
+      });
+
+      function saveConfig() {
+        const url = document.getElementById("ngrokUrl").value.trim();
+        localStorage.setItem("ngrokUrl", url);
+        if (url) updateStatus("Connected", true);
+      }
+
+      function updateStatus(text, connected) {
+        const el = document.getElementById("connectionStatus");
+        el.textContent = text;
+        const dot = document.querySelector(".status-dot");
+        dot.style.background = connected ? "#10b981" : "#ef4444";
+      }
+
+      function getTimestamp() {
+        return new Date().toLocaleTimeString("en-US", { hour12: false });
+      }
+
+      function addLogEntry(type, message, status) {
+        const container = document.getElementById("logEntries");
+        // Remove empty state
+        const empty = container.querySelector(".empty-state");
+        if (empty) empty.remove();
+
+        const entry = document.createElement("div");
+        entry.className = `log-entry log-${status}`;
+        entry.innerHTML = `<span class="log-time">[${getTimestamp()}]</span> <strong>${type.toUpperCase()}</strong> — ${message}`;
+
+        container.insertBefore(entry, container.firstChild);
+
+        // Update badge
+        document.getElementById("logCountBadge").textContent =
+          container.children.length;
+      }
+
+      async function sendLog(eventType, message) {
+        const ngrokUrl = document.getElementById("ngrokUrl").value.trim();
+
+        if (!ngrokUrl) {
+          addLogEntry(
+            eventType,
+            "⚠️ Please enter your ngrok URL first!",
+            "warn",
+          );
+          return;
+        }
+
+        const payload = {
+          event_type: eventType,
+          message: message,
+          severity: "info",
+          source: "vercel-webapp",
+          user_agent: navigator.userAgent,
+          page_url: window.location.href,
+          timestamp: new Date().toISOString(),
+        };
+
+        totalLogs++;
+        document.getElementById("totalLogs").textContent = totalLogs;
+
+        try {
+          await fetch(ngrokUrl, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+            mode: "no-cors",
+          });
+          successCount++;
+          document.getElementById("successCount").textContent = successCount;
+          addLogEntry(eventType, `✅ ${message}`, "success");
+        } catch (e) {
+          failCount++;
+          document.getElementById("failCount").textContent = failCount;
+          addLogEntry(eventType, `❌ Failed to send: ${e.message}`, "error");
+        }
+      }
+
+      async function sendAttack(attackType, payload) {
+        attackCount++;
+        document.getElementById("attackCount").textContent = attackCount;
+
+        const logPayload = {
+          event_type: attackType,
+          message: payload,
+          severity: "critical",
+          source: "vercel-webapp",
+          threat_level: "HIGH",
+          user_agent: navigator.userAgent,
+          page_url: window.location.href,
+          timestamp: new Date().toISOString(),
+        };
+
+        const ngrokUrl = document.getElementById("ngrokUrl").value.trim();
+
+        if (!ngrokUrl) {
+          addLogEntry(
+            attackType,
+            "⚠️ Please enter your ngrok URL first!",
+            "warn",
+          );
+          return;
+        }
+
+        totalLogs++;
+        document.getElementById("totalLogs").textContent = totalLogs;
+
+        try {
+          await fetch(ngrokUrl, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(logPayload),
+            mode: "no-cors",
+          });
+          successCount++;
+          document.getElementById("successCount").textContent = successCount;
+          addLogEntry(attackType, `🚨 ATTACK SIM: ${payload}`, "error");
+        } catch (e) {
+          failCount++;
+          document.getElementById("failCount").textContent = failCount;
+          addLogEntry(attackType, `❌ Failed: ${e.message}`, "error");
+        }
+      }
+    </script>
+  </body>
+</html>
