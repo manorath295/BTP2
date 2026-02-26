@@ -565,18 +565,26 @@
             ngrokUrl +
             (ngrokUrl.includes("?") ? "&" : "?") +
             "ngrok-skip-browser-warning=true";
-          const blob = new Blob([JSON.stringify(payload)], {
-            type: "application/json",
+          const resp = await fetch(targetUrl, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "ngrok-skip-browser-warning": "true",
+            },
+            body: JSON.stringify(payload),
           });
-          const sent = navigator.sendBeacon(targetUrl, blob);
-          if (sent) {
+          if (resp.ok || resp.type === "opaque") {
             successCount++;
             document.getElementById("successCount").textContent = successCount;
             addLogEntry(eventType, `✅ ${message}`, "success");
           } else {
             failCount++;
             document.getElementById("failCount").textContent = failCount;
-            addLogEntry(eventType, `❌ sendBeacon returned false`, "error");
+            addLogEntry(
+              eventType,
+              `❌ Server returned ${resp.status}`,
+              "error",
+            );
           }
         } catch (e) {
           failCount++;
@@ -619,18 +627,26 @@
             ngrokUrl +
             (ngrokUrl.includes("?") ? "&" : "?") +
             "ngrok-skip-browser-warning=true";
-          const blob = new Blob([JSON.stringify(logPayload)], {
-            type: "application/json",
+          const resp = await fetch(targetUrl, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "ngrok-skip-browser-warning": "true",
+            },
+            body: JSON.stringify(logPayload),
           });
-          const sent = navigator.sendBeacon(targetUrl, blob);
-          if (sent) {
+          if (resp.ok || resp.type === "opaque") {
             successCount++;
             document.getElementById("successCount").textContent = successCount;
             addLogEntry(attackType, `🚨 ATTACK SIM: ${payload}`, "error");
           } else {
             failCount++;
             document.getElementById("failCount").textContent = failCount;
-            addLogEntry(attackType, `❌ sendBeacon returned false`, "error");
+            addLogEntry(
+              attackType,
+              `❌ Server returned ${resp.status}`,
+              "error",
+            );
           }
         } catch (e) {
           failCount++;
