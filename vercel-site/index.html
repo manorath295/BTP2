@@ -561,15 +561,19 @@
         document.getElementById("totalLogs").textContent = totalLogs;
 
         try {
-          await fetch(ngrokUrl, {
-            method: "POST",
-            headers: { "Content-Type": "text/plain" },
-            body: JSON.stringify(payload),
-            mode: "no-cors",
+          const blob = new Blob([JSON.stringify(payload)], {
+            type: "application/json",
           });
-          successCount++;
-          document.getElementById("successCount").textContent = successCount;
-          addLogEntry(eventType, `✅ ${message}`, "success");
+          const sent = navigator.sendBeacon(ngrokUrl, blob);
+          if (sent) {
+            successCount++;
+            document.getElementById("successCount").textContent = successCount;
+            addLogEntry(eventType, `✅ ${message}`, "success");
+          } else {
+            failCount++;
+            document.getElementById("failCount").textContent = failCount;
+            addLogEntry(eventType, `❌ sendBeacon returned false`, "error");
+          }
         } catch (e) {
           failCount++;
           document.getElementById("failCount").textContent = failCount;
@@ -607,15 +611,19 @@
         document.getElementById("totalLogs").textContent = totalLogs;
 
         try {
-          await fetch(ngrokUrl, {
-            method: "POST",
-            headers: { "Content-Type": "text/plain" },
-            body: JSON.stringify(logPayload),
-            mode: "no-cors",
+          const blob = new Blob([JSON.stringify(logPayload)], {
+            type: "application/json",
           });
-          successCount++;
-          document.getElementById("successCount").textContent = successCount;
-          addLogEntry(attackType, `🚨 ATTACK SIM: ${payload}`, "error");
+          const sent = navigator.sendBeacon(ngrokUrl, blob);
+          if (sent) {
+            successCount++;
+            document.getElementById("successCount").textContent = successCount;
+            addLogEntry(attackType, `🚨 ATTACK SIM: ${payload}`, "error");
+          } else {
+            failCount++;
+            document.getElementById("failCount").textContent = failCount;
+            addLogEntry(attackType, `❌ sendBeacon returned false`, "error");
+          }
         } catch (e) {
           failCount++;
           document.getElementById("failCount").textContent = failCount;
