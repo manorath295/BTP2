@@ -10,11 +10,7 @@ filebeat.inputs:
     enabled: true
     listen_address: 0.0.0.0
     listen_port: 8088
-    content_type: application/json
-    response_headers:
-      Access-Control-Allow-Origin: "*"
-      Access-Control-Allow-Methods: "POST, OPTIONS"
-      Access-Control-Allow-Headers: "Content-Type"
+    content_type: ""
 
 output.elasticsearch:
   hosts: ["http://elasticsearch:9200"]
